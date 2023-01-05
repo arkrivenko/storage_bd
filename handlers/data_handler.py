@@ -43,7 +43,7 @@ def text_parser(message):
 
             warehouse = "Склад: " + text_list[-1]
 
-            moving_data = '; '.join([name, document, warehouse])
+            moving_data = '\n'.join([name, document, warehouse])
 
             local_datetime = datetime.now()
             date = local_datetime.date().strftime("%d-%m-%Y")
