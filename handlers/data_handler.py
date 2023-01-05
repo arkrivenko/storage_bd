@@ -3,7 +3,7 @@ import logging
 from loader import bot
 from pathlib import Path
 from datetime import datetime
-from database.database_functions import set_moving_data, get_photos_list, update_photos_list
+from database.database_functions import set_moving_data
 
 
 @bot.message_handler(commands=["add_note"])
@@ -27,6 +27,7 @@ def text_parser(message):
             msg = bot.send_message(message.from_user.id, "Ключевые слова в тексте не найдены, попробуйте еще раз!")
             bot.register_next_step_handler(msg, text_parser)
             break
+
     if flag:
         try:
             text_list = message.text.split()
@@ -45,48 +46,41 @@ def text_parser(message):
             moving_data = '; '.join([name, document, warehouse])
 
             local_datetime = datetime.now()
-            set_moving_data(message.from_user.id, local_datetime, moving_data)
+            date = local_datetime.date().strftime("%d-%m-%Y")
+            time = local_datetime.time().strftime("%H:%M:%S")
+            set_moving_data(message.from_user.id, date, time, moving_data)
 
-            Path(f"files/{message.from_user.id}/{local_datetime.date()}/{local_datetime.time()}").mkdir(
+            Path(f"files/{message.from_user.id}/{date}/{time}").mkdir(
                 parents=True, exist_ok=True)
 
             msg = bot.send_message(message.from_user.id, f"Данные успешно сохранены: <b>{moving_data}</b>. "
                                                          f"Теперь необходимо загрузить фото.\n"
                                                          f"Для этого просто сделайте фотографию и "
                                                          f"отправьте в этот чат.", parse_mode="html")
-            bot.register_next_step_handler(msg, photos_saver, local_datetime)
+            bot.register_next_step_handler(msg, photos_saver, date, time)
 
         except Exception:
             logging.exception("Возникла ошибка обработки введенных данных.")
             bot.send_message(message.from_user.id, "Что то пошло не так, попробуйте еще раз!")
 
 
-def photos_saver(message, local_datetime):
+def photos_saver(message, date, time):
     try:
 
         if not message.text:
             file_info = bot.get_file(message.photo[-1].file_id)
             downloaded_file = bot.download_file(file_info.file_path)
-            src = f"files/{message.from_user.id}/{local_datetime.date()}/{local_datetime.time()}/" + \
-                  file_info.file_path.replace("photos/", "")
+            src = f"files/{message.from_user.id}/{date}/{time}/" + file_info.file_path.replace("photos/", "")
 
             with open(src, "wb") as new_file:
                 new_file.write(downloaded_file)
 
-            photos_list = get_photos_list(message.from_user.id, local_datetime)
-
-            if photos_list:
-                updated_photos_list = " ".join([photos_list, src])
-            else:
-                updated_photos_list = src
-            update_photos_list(message.from_user.id, updated_photos_list, local_datetime)
-
-            msg = bot.send_message(message.from_user.id, "Если нужно добавить еще фото - просто загрузите сюда.")
-            bot.register_next_step_handler(msg, photos_saver, local_datetime)
-
-        else:
-            bot.send_message(message.from_user.id, "Для создания новой записи нужно нажать /add_note")
+            msg = bot.send_message(message.from_user.id, "Если нужно добавить еще фото - просто загрузите сюда.\n"
+                                                         "Если фотографий больше не будет - "
+                                                         "введите любой символ (например .)")
+            bot.register_next_step_handler(msg, photos_saver, date, time)
 
     except Exception:
         logging.exception("Возникла ошибка записи фото.")
-        bot.send_message(message.from_user.id, "Что то пошло не так, попробуйте отправить фото еще раз!")
+        msg = bot.send_message(message.from_user.id, "Что то пошло не так, попробуйте отправить фото еще раз!")
+        bot.register_next_step_handler(msg, photos_saver, date, time)

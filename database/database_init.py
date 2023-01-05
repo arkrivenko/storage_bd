@@ -6,9 +6,10 @@ def db_create():
     c = db.cursor()
     c.execute("""CREATE TABLE IF NOT EXISTS materials_moving(
     user_id INT,
-    local_datetime DATETIME,
-    moving TEXT,
-    photos_list TEXT)""")
+    local_date TEXT,
+    local_time TEXT,
+    moving TEXT
+    )""")
 
     db.commit()
     db.close()
