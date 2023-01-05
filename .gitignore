@@ -1,2 +1,5 @@
 /.env
 /identifier.sqlite
+/users.db
+/test.py
+/files/
