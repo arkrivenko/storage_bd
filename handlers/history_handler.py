@@ -2,7 +2,7 @@ import logging
 
 from loader import bot
 from datetime import datetime
-from upload_handler import upload_func
+from handlers.upload_handler import upload_func
 
 
 @bot.message_handler(commands=["history"])
