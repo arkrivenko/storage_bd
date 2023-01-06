@@ -20,48 +20,52 @@ def text_parser(message):
     flag = True
     word_keys = ("Название", "накладная", "склад")
 
-    for word in word_keys:
+    if not message.text:
+        bot.send_message(message.from_user.id, "Данные по перемещению должны присылаться в виде текста, "
+                                               "попробуйте еще раз!")
+    else:
+        for word in word_keys:
 
-        if word not in message.text:
-            flag = False
-            msg = bot.send_message(message.from_user.id, "Ключевые слова в тексте не найдены, попробуйте еще раз!")
-            bot.register_next_step_handler(msg, text_parser)
-            break
+            if word not in message.text:
+                flag = False
+                msg = bot.send_message(message.from_user.id, "Ключевые слова в тексте не найдены, попробуйте еще раз!\n"
+                                                             "Для этого снова нажмите на /add_note")
+                break
 
-    if flag:
-        try:
-            text_list = message.text.split()
-            name = text_list[1:text_list.index("накладная")]
-            if len(name) > 1:
-                name = " ".join(name)
-            else:
-                name = name[0]
-            name = "Наименование товара: " + name
+        if flag:
+            try:
+                text_list = message.text.split()
+                name = text_list[1:text_list.index("накладная")]
+                if len(name) > 1:
+                    name = " ".join(name)
+                else:
+                    name = name[0]
+                name = "Наименование товара: " + name
 
-            document = text_list[text_list.index("накладная") + 1:text_list.index("склад")]
-            document = "Номер накладной: " + "".join(document)
+                document = text_list[text_list.index("накладная") + 1:text_list.index("склад")]
+                document = "Номер накладной: " + "".join(document)
 
-            warehouse = "Склад: " + text_list[-1]
+                warehouse = "Склад: " + text_list[-1]
 
-            moving_data = '\n'.join([name, document, warehouse])
+                moving_data = '\n'.join([name, document, warehouse])
 
-            local_datetime = datetime.now()
-            date = local_datetime.date().strftime("%d-%m-%Y")
-            time = local_datetime.time().strftime("%H:%M:%S")
-            set_moving_data(message.from_user.id, date, time, moving_data)
+                local_datetime = datetime.now()
+                date = local_datetime.date().strftime("%d-%m-%Y")
+                time = local_datetime.time().strftime("%H:%M:%S")
+                set_moving_data(message.from_user.id, date, time, moving_data)
 
-            Path(f"files/{message.from_user.id}/{date}/{time}").mkdir(
-                parents=True, exist_ok=True)
+                Path(f"files/{message.from_user.id}/{date}/{time}").mkdir(
+                    parents=True, exist_ok=True)
 
-            msg = bot.send_message(message.from_user.id, f"Данные успешно сохранены: <b>{moving_data}</b>. "
-                                                         f"Теперь необходимо загрузить фото.\n"
-                                                         f"Для этого просто сделайте фотографию и "
-                                                         f"отправьте в этот чат.", parse_mode="html")
-            bot.register_next_step_handler(msg, photos_saver, date, time)
+                msg = bot.send_message(message.from_user.id, f"Данные успешно сохранены: <b>{moving_data}</b>. "
+                                                             f"Теперь необходимо загрузить фото.\n"
+                                                             f"Для этого просто сделайте фотографию и "
+                                                             f"отправьте в этот чат.", parse_mode="html")
+                bot.register_next_step_handler(msg, photos_saver, date, time)
 
-        except Exception:
-            logging.exception("Возникла ошибка обработки введенных данных.")
-            bot.send_message(message.from_user.id, "Что то пошло не так, попробуйте еще раз!")
+            except Exception:
+                logging.exception("Возникла ошибка обработки введенных данных.")
+                bot.send_message(message.from_user.id, "Что то пошло не так, попробуйте еще раз!")
 
 
 def photos_saver(message, date, time):
@@ -79,6 +83,9 @@ def photos_saver(message, date, time):
                                                          "Если фотографий больше не будет - "
                                                          "введите любой символ (например .)")
             bot.register_next_step_handler(msg, photos_saver, date, time)
+
+        else:
+            bot.send_message(message.from_user.id, "Фото успешно добавлены. ")
 
     except Exception:
         logging.exception("Возникла ошибка записи фото.")
