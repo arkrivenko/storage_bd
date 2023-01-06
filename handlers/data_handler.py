@@ -28,8 +28,8 @@ def text_parser(message):
 
             if word not in message.text:
                 flag = False
-                msg = bot.send_message(message.from_user.id, "Ключевые слова в тексте не найдены, попробуйте еще раз!\n"
-                                                             "Для этого снова нажмите на /add_note")
+                bot.send_message(message.from_user.id, "Ключевые слова в тексте не найдены, попробуйте еще раз!\n"
+                                                       "Для этого снова нажмите на /add_note")
                 break
 
         if flag:

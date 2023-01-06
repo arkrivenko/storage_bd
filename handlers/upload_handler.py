@@ -12,6 +12,7 @@ def upload_func(message, another_day=None):
             current_day = another_day
         else:
             current_day = datetime.now().date().strftime("%d-%m-%Y")
+
         path = f"./files/{message.from_user.id}/{current_day}"
 
         if not Path(path).is_dir():
@@ -19,7 +20,7 @@ def upload_func(message, another_day=None):
         else:
             dirs = Path(path).iterdir()
             for i_dir in sorted(dirs, reverse=True):
-                time = str(i_dir).split("/")[-1]
+                time = i_dir.name
                 moving_data = get_moving_data(message.from_user.id, current_day, time)
                 if not moving_data:
                     continue
