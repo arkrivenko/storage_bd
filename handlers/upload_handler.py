@@ -6,12 +6,16 @@ from database.database_functions import get_moving_data
 
 
 @bot.message_handler(commands=["upload"])
-def upload_func(message):
+def upload_func(message, another_day=None):
     try:
-        current_day = datetime.now().date().strftime("%d-%m-%Y")
+        if another_day:
+            current_day = another_day
+        else:
+            current_day = datetime.now().date().strftime("%d-%m-%Y")
         path = f"./files/{message.from_user.id}/{current_day}"
+
         if not Path(path).is_dir():
-            bot.send_message(message.from_user.id, "Записи за текущий день не найдены!")
+            bot.send_message(message.from_user.id, f"Записи за {current_day} не найдены!")
         else:
             dirs = Path(path).iterdir()
             for i_dir in sorted(dirs, reverse=True):

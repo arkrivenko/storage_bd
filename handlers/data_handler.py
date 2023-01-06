@@ -51,7 +51,7 @@ def text_parser(message):
 
                 local_datetime = datetime.now()
                 date = local_datetime.date().strftime("%d-%m-%Y")
-                time = local_datetime.time().strftime("%H:%M:%S")
+                time = local_datetime.time().strftime("%H-%M-%S")
                 set_moving_data(message.from_user.id, date, time, moving_data)
 
                 Path(f"files/{message.from_user.id}/{date}/{time}").mkdir(
