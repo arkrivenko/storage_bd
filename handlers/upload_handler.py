@@ -19,9 +19,10 @@ def upload_func(message, another_day=None):
         else:
             dirs = Path(path).iterdir()
             for i_dir in sorted(dirs, reverse=True):
-                print(f"i_dir: {i_dir}")
                 time = str(i_dir).split("/")[-1]
                 moving_data = get_moving_data(message.from_user.id, current_day, time)
+                if not moving_data:
+                    continue
                 edited_moving_data = "\n".join(moving_data)
                 bot.send_message(message.from_user.id, edited_moving_data)
                 for photo in i_dir.iterdir():
